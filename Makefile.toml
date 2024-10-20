@@ -1,0 +1,10 @@
+[env]
+GLOBAL = "global env"
+
+[tasks.set-env-local.env]
+LOCAL = "local env"
+
+[tasks.run]
+extend = "set-env-local"
+command = "cargo"
+args = ["run"]
