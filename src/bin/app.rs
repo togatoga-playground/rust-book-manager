@@ -39,14 +39,6 @@ async fn main() -> Result<()> {
     Ok(axum::serve(listener, app).await?)
 }
 
-struct DatabaseConfig {
-    pub host: String,
-    pub port: u16,
-    pub username: String,
-    pub password: String,
-    pub database: String,
-}
-
 impl From<DatabaseConfig> for sqlx::postgres::PgConnectOptions {
     fn from(config: DatabaseConfig) -> Self {
         sqlx::postgres::PgConnectOptions::new()
@@ -56,10 +48,6 @@ impl From<DatabaseConfig> for sqlx::postgres::PgConnectOptions {
             .password(&config.password)
             .database(&config.database)
     }
-}
-
-fn connect_database_with(cfg: DatabaseConfig) -> PgPool {
-    PgPool::connect_lazy_with(cfg.into())
 }
 
 #[tokio::test]
