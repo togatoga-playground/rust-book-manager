@@ -6,9 +6,8 @@ use crate::database::ConnectionPool;
 
 #[derive(new)]
 pub struct HealthCheckRepositoryImpl {
-    db: ConnectionPool
+    db: ConnectionPool,
 }
-
 
 #[async_trait]
 impl HealthCheckRepository for HealthCheckRepositoryImpl {

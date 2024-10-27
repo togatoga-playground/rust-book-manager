@@ -19,6 +19,6 @@ impl ConnectionPool {
     }
 }
 
-fn connect_database_with(cfg: DatabaseConfig) -> PgPool {
+pub fn connect_database_with(cfg: DatabaseConfig) -> PgPool {
     PgPool::connect_lazy_with(make_pg_connect_options(&cfg))
 }

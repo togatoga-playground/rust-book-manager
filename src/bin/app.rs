@@ -2,6 +2,7 @@ use std::net::{Ipv4Addr, SocketAddr};
 
 use anyhow::Result;
 use axum::{extract::State, http::StatusCode};
+use shared::config::DatabaseConfig;
 use sqlx::PgPool;
 
 pub async fn health_check() -> StatusCode {
@@ -24,7 +25,7 @@ async fn main() -> Result<()> {
         password: "passwd".to_string(),
         database: "app".to_string(),
     };
-    let conn_pool = connect_database_with(database_cfg);
+    let conn_pool = adapter::database::connect_database_with(database_cfg);
 
     let app = axum::Router::new()
         .route("/health", axum::routing::get(health_check))
@@ -37,17 +38,6 @@ async fn main() -> Result<()> {
     println!("Listening on: {}", addr);
 
     Ok(axum::serve(listener, app).await?)
-}
-
-impl From<DatabaseConfig> for sqlx::postgres::PgConnectOptions {
-    fn from(config: DatabaseConfig) -> Self {
-        sqlx::postgres::PgConnectOptions::new()
-            .host(&config.host)
-            .port(config.port)
-            .username(&config.username)
-            .password(&config.password)
-            .database(&config.database)
-    }
 }
 
 #[tokio::test]
