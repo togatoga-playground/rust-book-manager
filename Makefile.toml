@@ -29,19 +29,18 @@ JAEGER_HOST = "localhost"
 JAEGER_PORT = 6831
 
 [tasks.before-build]
-run_task = [
-    { name = [
-            "compose-up-db",
-            "compose-up-redis",
-        ]},
-]
+run_task = [{ name = ["compose-up-db", "compose-up-redis"] }]
 
 [tasks.compose-build-app]
 extend = "set-env-docker"
 command = "docker"
 args = [
-    "compose", "build", "app",
-    "--build-arg", "BUILDKIT_INLINE_CACHE=1", "${@}",
+    "compose",
+    "build",
+    "app",
+    "--build-arg",
+    "BUILDKIT_INLINE_CACHE=1",
+    "${@}",
 ]
 
 [tasks.run]
@@ -77,7 +76,7 @@ args = ["check"]
 [tasks.watch]
 extend = "set-env-local"
 dependencies = ["before-build"]
-run_task = [{name = ["fmt", "clippy", "test"]}]
+run_task = [{ name = ["fmt", "clippy", "test"] }]
 watch = true
 
 [tasks.fmt]
@@ -92,10 +91,18 @@ args = ["clippy", "--all", "--all-targets", "${@}"]
 
 [tasks.test]
 extend = "set-env-local"
-install_crate = { crate_name = "cargo-nextest", binary = "cargo", test_arg = ["nextest", "--help"]}
+install_crate = { crate_name = "cargo-nextest", binary = "cargo", test_arg = [
+    "nextest",
+    "--help",
+] }
 category = "cargo"
 args = [
-    "nextest", "run", "--workspace", "--status-level", "all", "--test-threads=1",
+    "nextest",
+    "run",
+    "--workspace",
+    "--status-level",
+    "all",
+    "--test-threads=1",
 ]
 
 [tasks.clippy-ci]
@@ -105,6 +112,84 @@ run_task = "clippy"
 [tasks.test-ci]
 dependencies = ["before-build"]
 run_task = "test"
+
+[tasks.migrate]
+extend = "set-env-local"
+install_crate = { crate_name = "sqlx-cli", binary = "sqlx", test_arg = "--help", version = "0.7.3" }
+script = '''
+#!/bin/bash
+until sqlx migrate run --source adapter/migrations; do
+    echo "Retrying migration..."
+    sleep 1
+done    
+'''
+
+[tasks.sqlx]
+extend = "set-env-local"
+install_crate = { crate_name = "sqlx-cli", binary = "sqlx", test_arg = "--help", version = "0.7.3" }
+command = "sqlx"
+args = ["${@}", "--source", "adapter/migrations"]
+
+[tasks.psql]
+extend = "set-env-local"
+command = "docker"
+args = [
+    "run",
+    "-it",
+    "--rm",
+    "--network",
+    "host",
+    "-v",
+    "${PWD}:/work",
+    "postgres:15",
+    "psql",
+    "${DATABASE_URL}",
+    "-f",
+    "/work/data/initial_setup.sql",
+]
+
+[tasks.initial-setup]
+extend = "set-env-local"
+command = "docker"
+args = [
+    "run",
+    "-it",
+    "--rm",
+    "--network",
+    "host",
+    "-v",
+    "${PWD}:/work",
+    "postgres:15",
+    "psql",
+    "${DATABASE_URL}",
+    "-f",
+    "/work/data/initial_setup.sql",
+]
+
+[tasks.compose]
+extend = "set-env-docker"
+command = "docker"
+args = ["compose", "${@}"]
+
+[tasks.compose-up-db]
+extend = "set-env-docker"
+command = "docker"
+args = ["compose", "up", "-d", "postgres"]
+
+[tasks.compose-up-redis]
+extend = "set-env-docker"
+command = "docker"
+args = ["compose", "up", "-d", "redis"]
+
+[tasks.compose-down]
+extend = "set-env-docker"
+command = "docker"
+args = ["compose", "down"]
+
+[tasks.compose-remove]
+extend = "set-env-docker"
+command = "docker"
+args = ["compose", "down", "--volumes"]
 
 [config]
 default_to_workspace = false
