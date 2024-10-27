@@ -1,10 +1,78 @@
 [env]
-GLOBAL = "global env"
+HOST = "0.0.0.0"
+PORT = 8080
+DATABASE_USERNAME = "app"
+DATABASE_PASSWORD = "passwd"
+DATABASE_NAME = "app"
+DATABASE_PORT_OUTER = 5432
+DATABASE_PORT_INNER = 5432
+REDIS_PORT_OUTER = 6379
+REDIS_PORT_INNER = 6379
+AUTH_TOKEN_TTL = 86400
+
+[tasks.set-env-docker.env]
+DATABASE_HOST = "postgres"
+DATABASE_PORT = "${DATABASE_PORT_INNER}"
+DATABASE_URL = "postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?user=${DATABASE_USERNAME}&password=${DATABASE_PASSWORD}"
+REDIS_HOST = "redis"
+REDIS_PORT = "${REDIS_PORT_INNER}"
+JAEGER_HOST = "jaeger"
+JAEGER_PORT = 6831
 
 [tasks.set-env-local.env]
-LOCAL = "local env"
+DATABASE_HOST = "localhost"
+DATABASE_PORT = "${DATABASE_PORT_OUTER}"
+DATABASE_URL = "postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?user=${DATABASE_USERNAME}&password=${DATABASE_PASSWORD}"
+REDIS_HOST = "redis"
+REDIS_PORT = "${REDIS_PORT_OUTER}"
+JAEGER_HOST = "localhost"
+JAEGER_PORT = 6831
+
+[tasks.before-build]
+run_task = [
+    { name = [
+            "compose-up-db",
+            "compose-up-redis",
+        ]},
+]
+
+[tasks.compose-build-app]
+extend = "set-env-docker"
+command = "docker"
+args = [
+    "compose", "build", "app",
+    "--build-arg", "BUILDKIT_INLINE_CACHE=1", "${@}",
+]
 
 [tasks.run]
 extend = "set-env-local"
+dependencies = ["before-build"]
 command = "cargo"
-args = ["run"]
+args = ["run", "${@}"]
+
+[tasks.run-in-docker]
+extend = "set-env-docker"
+dependencies = ["before-build", "compose-build-app"]
+command = "docker"
+args = ["compose", "up", "-d", "app"]
+
+[tasks.logs]
+extend = "set-env-docker"
+dependencies = ["before-build"]
+command = "docker"
+args = ["compose", "logs", "${@}"]
+
+[tasks.build]
+extend = "set-env-local"
+dependencies = ["before-build"]
+command = "cargo"
+args = ["build", "${@}"]
+
+[tasks.check]
+extend = "set-env-local"
+dependencies = ["before-build"]
+command = "cargo"
+args = ["check"]
+
+[config]
+default_to_workspace = false
