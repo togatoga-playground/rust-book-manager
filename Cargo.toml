@@ -5,7 +5,16 @@ edition = "2021"
 
 [[bin]]
 name = "app"
-path = "src/main.rs"
+path = "src/bin/app.rs"
+
+[workspace]
+members = [
+    "api",
+    "kernel",
+    "adapter",
+    "shared",
+    "registry",
+]
 
 [dependencies]
 anyhow = "1.0.91"
