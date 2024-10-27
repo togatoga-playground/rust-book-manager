@@ -28,17 +28,23 @@ sqlx = { version = "0.8.2", features = ["runtime-tokio", "uuid", "chrono", "macr
 tokio = { version = "1.41.0", features = ["full"] }
 async-trait = "0.1.83"
 derive-new = "0.7.0"
+uuid = { version = "1.11.0", features = ["v4", "serde"] }
+serde = { version = "1.0.213", features = ["derive"] }
+thiserror = "1.0.65"
 
 [dependencies]
-async-trait.workspace = true
+# members
 adapter.workspace = true
 api.workspace = true
 registry.workspace = true
 shared.workspace = true
+# external
+async-trait.workspace = true
 anyhow.workspace = true
 tokio.workspace = true
 axum.workspace = true
 sqlx.workspace = true
+
 
 
 [dev-dependencies]

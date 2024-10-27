@@ -8,7 +8,8 @@ edition = "2021"
 kernel.workspace = true
 shared.workspace = true
 # external
+anyhow.workspace = true
 async-trait.workspace = true
 derive-new.workspace = true
-anyhow.workspace = true
 sqlx.workspace = true
+uuid.workspace = true

@@ -29,7 +29,7 @@ JAEGER_HOST = "localhost"
 JAEGER_PORT = 6831
 
 [tasks.before-build]
-run_task = [{ name = ["compose-up-db", "compose-up-redis"] }]
+run_task = [{ name = ["compose-up-db", "migrate", "compose-up-redis"] }]
 
 [tasks.compose-build-app]
 extend = "set-env-docker"
@@ -144,8 +144,7 @@ args = [
     "postgres:15",
     "psql",
     "${DATABASE_URL}",
-    "-f",
-    "/work/data/initial_setup.sql",
+    "${@}",
 ]
 
 [tasks.initial-setup]
