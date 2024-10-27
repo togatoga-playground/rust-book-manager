@@ -27,10 +27,7 @@ async fn main() -> Result<()> {
     let conn_pool = connect_database_with(database_cfg);
 
     let app = axum::Router::new()
-        .route(
-            "/health",
-            axum::routing::get(health_check),
-        )
+        .route("/health", axum::routing::get(health_check))
         .route(
             "/health/db",
             axum::routing::get(health_check_db).with_state(conn_pool),
