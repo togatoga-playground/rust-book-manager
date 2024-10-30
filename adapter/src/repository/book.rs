@@ -2,6 +2,7 @@ use crate::database::{model::book::BookRow, ConnectionPool};
 use async_trait::async_trait;
 use derive_new::new;
 use kernel::{model::book::Book, repository::book::BookRepository};
+use shared::error::{AppError, AppResult};
 
 #[derive(new)]
 pub struct BookRepositoryImpl {
@@ -10,7 +11,7 @@ pub struct BookRepositoryImpl {
 
 #[async_trait]
 impl BookRepository for BookRepositoryImpl {
-    async fn create(&self, event: kernel::model::book::event::CreateBook) -> anyhow::Result<()> {
+    async fn create(&self, event: kernel::model::book::event::CreateBook) -> AppResult<()> {
         sqlx::query!(
             r#"
             INSERT INTO books (title, author, isbn, description)
@@ -22,11 +23,12 @@ impl BookRepository for BookRepositoryImpl {
             event.description
         )
         .execute(self.db.inner_ref())
-        .await?;
+        .await
+        .map_err(AppError::SpecificOperationError)?;
         Ok(())
     }
 
-    async fn find_all(&self) -> anyhow::Result<Vec<kernel::model::book::Book>> {
+    async fn find_all(&self) -> AppResult<Vec<kernel::model::book::Book>> {
         let rows: Vec<BookRow> = sqlx::query_as!(
             BookRow,
             r#"
@@ -36,7 +38,8 @@ impl BookRepository for BookRepositoryImpl {
             "#,
         )
         .fetch_all(self.db.inner_ref())
-        .await?;
+        .await
+        .map_err(AppError::SpecificOperationError)?;
 
         Ok(rows.into_iter().map(Book::from).collect())
     }
@@ -44,7 +47,7 @@ impl BookRepository for BookRepositoryImpl {
     async fn find_by_id(
         &self,
         book_id: uuid::Uuid,
-    ) -> anyhow::Result<Option<kernel::model::book::Book>> {
+    ) -> AppResult<Option<kernel::model::book::Book>> {
         let row: Option<BookRow> = sqlx::query_as!(
             BookRow,
             r#"
@@ -55,8 +58,8 @@ impl BookRepository for BookRepositoryImpl {
             book_id
         )
         .fetch_optional(self.db.inner_ref())
-        .await?;
-
+        .await
+        .map_err(AppError::SpecificOperationError)?;
         Ok(row.map(Book::from))
     }
 }

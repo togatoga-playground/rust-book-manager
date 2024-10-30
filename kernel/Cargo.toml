@@ -9,6 +9,5 @@ publish.workspace = true
 shared.workspace = true
 async-trait.workspace = true
 uuid.workspace = true
-
-[dev-dependencies]
 anyhow.workspace = true
+
