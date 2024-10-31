@@ -13,6 +13,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilte
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    init_logger()?;
     bootstrap().await
 }
 
@@ -22,7 +23,7 @@ fn init_logger() -> Result<()> {
         Environment::Production => "info",
     };
 
-    let env_filter = EnvFilter::try_from_default_env().unwrap_or(|_| log_level.into());
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| log_level.into());
 
     let subscriber = tracing_subscriber::fmt::layer()
         .with_file(true)

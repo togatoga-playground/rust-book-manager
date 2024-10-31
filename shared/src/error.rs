@@ -1,5 +1,3 @@
-use core::error;
-
 use axum::{http::StatusCode, response::IntoResponse};
 use thiserror::Error;
 
