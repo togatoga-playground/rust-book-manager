@@ -2,7 +2,7 @@ INSERT INTO
     roles (name)
 VALUES
     ('Admin'),
-    ('User');
+    ('User')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO
