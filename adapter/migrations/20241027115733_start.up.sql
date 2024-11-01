@@ -5,7 +5,13 @@ BEGIN
     RETURN NEW;
 END;
 ' LANGUAGE 'plpgsql';
-UPDATE ON books FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE IF NOT EXISTS roles (
+    role_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- user
 CREATE TABLE IF NOT EXISTS users (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
@@ -18,6 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 CREATE TRIGGER users_updated_at_trigger BEFORE
 UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+-- book
 CREATE TABLE IF NOT EXISTS books (
     book_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
@@ -30,3 +37,4 @@ CREATE TABLE IF NOT EXISTS books (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE TRIGGER books_updated_at_trigger BEFORE
+UPDATE ON books FOR EACH ROW EXECUTE FUNCTION set_updated_at();
