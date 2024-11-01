@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use model::{RedisKey, RedisValue};
 use redis::AsyncCommands;
 use shared::{config::RedisConfig, error::AppResult};
