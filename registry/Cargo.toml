@@ -8,3 +8,4 @@ publish.workspace = true
 [dependencies]
 adapter.workspace = true
 kernel.workspace = true
+shared.workspace = true
