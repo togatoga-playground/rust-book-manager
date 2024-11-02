@@ -15,6 +15,7 @@ derive-new.workspace = true
 sqlx.workspace = true
 uuid.workspace = true
 redis.workspace = true
+bcrypt.workspace = true
 
 [dev-dependencies]
 anyhow.workspace = true
