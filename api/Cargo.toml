@@ -17,6 +17,8 @@ derive-new.workspace = true
 serde.workspace = true
 uuid.workspace = true
 thiserror.workspace = true
+strum.workspace = true
+garde.workspace = true
 
 [dev-dependencies]
 anyhow.workspace = true
