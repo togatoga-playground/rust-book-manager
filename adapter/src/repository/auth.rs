@@ -1,19 +1,29 @@
-use std::sync::Arc;
-use derive_new::new;
-use async_trait::async_trait;
-use kernel::{model::{auth::{event::CreateToken, AccessToken}, id::UserId}, repository::auth::AuthRepository};
-use shared::error::{AppError, AppResult};
-use crate::{database::{model::auth::{from, AuhtorizedUserId, AuthorizationKey}, ConnectionPool}, redis::RedisClient};
 use crate::database::model::auth::UserItem;
-
+use crate::{
+    database::{
+        model::auth::{from, AuhtorizedUserId, AuthorizationKey},
+        ConnectionPool,
+    },
+    redis::RedisClient,
+};
+use async_trait::async_trait;
+use derive_new::new;
+use kernel::{
+    model::{
+        auth::{event::CreateToken, AccessToken},
+        id::UserId,
+    },
+    repository::auth::AuthRepository,
+};
+use shared::error::{AppError, AppResult};
+use std::sync::Arc;
 
 #[derive(new)]
 pub struct AuthRepositoryImpl {
     db: ConnectionPool,
     kv: Arc<RedisClient>,
-    ttl:u64,
+    ttl: u64,
 }
-
 
 #[async_trait]
 impl AuthRepository for AuthRepositoryImpl {
@@ -22,7 +32,10 @@ impl AuthRepository for AuthRepositoryImpl {
         access_token: &AccessToken,
     ) -> AppResult<Option<UserId>> {
         let key: AuthorizationKey = access_token.into();
-        self.kv.get(&key).await.map(|x| x.map(AuhtorizedUserId::into_inner))
+        self.kv
+            .get(&key)
+            .await
+            .map(|x| x.map(AuhtorizedUserId::into_inner))
     }
 
     async fn verify_user(&self, email: &str, password: &str) -> AppResult<UserId> {
@@ -44,13 +57,13 @@ impl AuthRepository for AuthRepositoryImpl {
         }
         Ok(user_item.user_id)
     }
-    
+
     async fn create_token(&self, event: CreateToken) -> AppResult<AccessToken> {
         let (key, value) = from(event);
         self.kv.set_ex(&key, &value, self.ttl).await?;
         Ok(key.into())
     }
-    
+
     async fn delete_token(&self, access_token: &AccessToken) -> AppResult<()> {
         self.kv.delete(&AuthorizationKey::from(access_token)).await
     }
