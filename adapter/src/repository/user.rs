@@ -95,6 +95,16 @@ impl UserRepository for UserRepositoryImpl {
         .execute(self.db.inner_ref())
         .await
         .map_err(AppError::SpecificOperationError)?;
+
+        if res.rows_affected() < 1 {
+            return Err(AppError::EntityNotFound("No user has been created".into()));
+        }
+        Ok(User {
+            id: user_id,
+            name: event.name,
+            email: event.email,
+            role,
+        })
     }
 
     async fn update_password(&self, event: UpdateUserPassword) -> AppResult<()> {
