@@ -6,12 +6,13 @@ use std::{
 use adapter::{database::connect_database_with, redis::RedisClient};
 use anyhow::{Error, Result};
 use api::route::{auth, v1};
-use axum::Router;
+use axum::{http::Method, Router};
 use registry::AppRegistry;
 use shared::{
     config::AppConfig,
     env::{which, Environment},
 };
+use tower_http::cors::{self, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 #[tokio::main]
@@ -40,6 +41,13 @@ fn init_logger() -> Result<()> {
     Ok(())
 }
 
+fn cors() -> CorsLayer {
+    CorsLayer::new()
+        .allow_headers(cors::Any)
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_origin(cors::Any)
+}
+
 async fn bootstrap() -> Result<()> {
     let app_config = AppConfig::new()?;
     let pool = connect_database_with(&app_config.database);
@@ -48,6 +56,7 @@ async fn bootstrap() -> Result<()> {
     let app = Router::new()
         .merge(v1::routes())
         .merge(auth::routes())
+        .layer(cors())
         .with_state(registry);
 
     let addr = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), 8080);

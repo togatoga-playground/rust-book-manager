@@ -62,6 +62,7 @@ axum.workspace = true
 sqlx.workspace = true
 tracing.workspace = true
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
+tower-http = { version = "0.6.1", features = ["cors", "trace"] }
 
 
 
