@@ -1,31 +1,17 @@
-use derive_new::new;
-use kernel::model::role::Role;
-use serde::{Deserialize, Serialize};
-use strum::VariantNames;
+use axum::{
+    routing::{delete, post, put},
+    Router,
+};
+use registry::AppRegistry;
 
-#[derive(Serialize, Deserialize, VariantNames)]
-#[strum(serialize_all = "kebab-case")]
-pub enum RoleName {
-    Admin,
-    User,
+use crate::handler::user::{change_password, delete_user, get_current_user, register_user};
+use axum::routing::get;
+
+pub fn build_user_router() -> Router<AppRegistry> {
+    Router::new()
+        .route("/users/me", get(get_current_user))
+        .route("/users/med/password", put(change_password))
+        .route("/users", post(register_user))
+        .route("/users/:user_id", delete(delete_user))
+        .route("/users/:user_id/role", put(change_role))
 }
-
-impl From<Role> for RoleName {
-    fn from(role: Role) -> Self {
-        match role {
-            Role::Admin => RoleName::Admin,
-            Role::User => RoleName::User,
-        }
-    }
-}
-
-impl From<RoleName> for Role {
-    fn from(role: RoleName) -> Self {
-        match role {
-            RoleName::Admin => Role::Admin,
-            RoleName::User => Role::User,
-        }
-    }
-}
-
-pub struct UserResponse {}

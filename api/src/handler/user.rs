@@ -4,7 +4,7 @@ use axum::{
     Json,
 };
 use garde::Validate;
-use kernel::model::id::UserId;
+use kernel::model::{id::UserId, user::event::DeleteUser};
 use registry::AppRegistry;
 use shared::error::{AppError, AppResult};
 
@@ -45,6 +45,23 @@ pub async fn list_users(
 }
 
 pub async fn delete_user(
+    user: AuthorizedUser,
+    Path(user_id): Path<UserId>,
+    State(registry): State<AppRegistry>,
+) -> AppResult<StatusCode> {
+    if !user.is_admin() {
+        return Err(AppError::ForbiddenOperation);
+    }
+
+    registry
+        .user_repository()
+        .delete(DeleteUser { user_id })
+        .await?;
+
+    Ok(StatusCode::OK)
+}
+
+pub async fn change_role(
     user: AuthorizedUser,
     Path(user_id): Path<UserId>,
     State(registry): State<AppRegistry>,
