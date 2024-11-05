@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use super::id::{BookId, CheckoutId, UserId};
+use crate::model::id::{BookId, CheckoutId, UserId};
 
 pub mod event;
 

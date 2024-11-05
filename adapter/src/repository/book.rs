@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use crate::database::{
-    model::book::{BookRow, PaginatedBookRow},
+    model::book::{BookCheckoutRow, BookRow, PaginatedBookRow},
     ConnectionPool,
 };
 use async_trait::async_trait;
@@ -9,7 +11,7 @@ use kernel::{
         book::{
             event::{CreateBook, DeleteBook, UpdateBook},
             list::PaginatedList,
-            Book, BookListOptions,
+            Book, BookCheckout, BookListOptions,
         },
         id::{BookId, UserId},
     },
@@ -87,8 +89,16 @@ impl BookRepository for BookRepositoryImpl {
         .fetch_all(self.db.inner_ref())
         .await
         .map_err(AppError::SpecificOperationError)?;
+        let book_ids = rows.iter().map(|book| book.book_id).collect::<Vec<_>>();
+        let mut checkouts = self.find_checkouts(&book_ids).await?;
 
-        let items = rows.into_iter().map(Book::from).collect();
+        let items = rows
+            .into_iter()
+            .map(|row| {
+                let checkout = checkouts.remove(&row.book_id);
+                row.int_book(checkout)
+            })
+            .collect();
 
         Ok(PaginatedList {
             total,
@@ -119,7 +129,13 @@ impl BookRepository for BookRepositoryImpl {
         .fetch_optional(self.db.inner_ref())
         .await
         .map_err(AppError::SpecificOperationError)?;
-        Ok(row.map(Book::from))
+        match row {
+            Some(row) => {
+                let checkout = self.find_checkouts(&[book_id]).await?.remove(&book_id);
+                Ok(Some(row.int_book(checkout)))
+            }
+            None => Ok(None),
+        }
     }
 
     async fn update(&self, event: UpdateBook) -> AppResult<()> {
@@ -169,6 +185,36 @@ impl BookRepository for BookRepositoryImpl {
             return Err(AppError::EntityNotFound("specified book not found".into()));
         }
         Ok(())
+    }
+}
+
+impl BookRepositoryImpl {
+    async fn find_checkouts(
+        &self,
+        book_ids: &[BookId],
+    ) -> AppResult<HashMap<BookId, BookCheckout>> {
+        let res = sqlx::query_as!(
+            BookCheckoutRow,
+            r#"
+            SELECT
+                c.checkout_id,
+                c.book_id,
+                u.user_id,
+                u.name AS user_name,
+                c.checked_out_at
+            FROM checkouts AS c
+            INNER JOIN users AS u USING(user_id)
+            WHERE book_id = ANY($1)
+            "#,
+            book_ids as _
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map_err(AppError::SpecificOperationError)?
+        .into_iter()
+        .map(|checkout| (checkout.book_id, BookCheckout::from(checkout)))
+        .collect();
+        Ok(res)
     }
 }
 
@@ -227,6 +273,7 @@ mod tests {
             isbn,
             description,
             owner,
+            ..
         } = res.unwrap();
         assert_eq!(id, book_id);
         assert_eq!(title, "Test Book");

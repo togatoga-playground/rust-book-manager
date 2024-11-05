@@ -11,10 +11,7 @@ use kernel::model::{
 use registry::AppRegistry;
 use shared::error::AppResult;
 
-use crate::{
-    extractor::AuthorizedUser,
-    model::checkout::CheckoutsResponse,
-};
+use crate::{extractor::AuthorizedUser, model::checkout::CheckoutsResponse};
 
 pub async fn checkout_book(
     user: AuthorizedUser,
