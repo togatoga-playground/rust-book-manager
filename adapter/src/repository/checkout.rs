@@ -1,4 +1,7 @@
-use crate::database::{model::checkout::CheckoutStateRow, ConnectionPool};
+use crate::database::{
+    model::checkout::{CheckoutRow, CheckoutStateRow, ReturnedCheckoutRow},
+    ConnectionPool,
+};
 use async_trait::async_trait;
 use derive_new::new;
 use kernel::{
@@ -167,13 +170,85 @@ impl CheckoutRepository for CheckoutRepositoryImpl {
     }
 
     async fn find_returned_all(&self) -> AppResult<Vec<Checkout>> {
-        todo!()
+        sqlx::query_as!(
+            CheckoutRow,
+            r#"
+                SELECT
+                    c.checkout_id,
+                    c.book_id,
+                    c.user_id,
+                    c.checked_out_at,
+                    b.title,
+                    b.author,
+                    b.isbn
+                FROM checkouts AS c
+                INNER JOIN books AS b USING(book_id)
+                ORDER BY c.checked_out_at DESC;
+            "#
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map(|rows| rows.into_iter().map(Checkout::from).collect())
+        .map_err(AppError::SpecificOperationError)
     }
     async fn find_unreturned_all_by_user_id(&self, user_id: UserId) -> AppResult<Vec<Checkout>> {
-        todo!()
+        sqlx::query_as!(
+            CheckoutRow,
+            r#"
+                SELECT
+                    c.checkout_id,
+                    c.book_id,
+                    c.user_id,
+                    c.checked_out_at,
+                    b.title,
+                    b.author,
+                    b.isbn
+                FROM checkouts AS c
+                INNER JOIN books AS b USING(book_id)
+                WHERE c.user_id = $1
+                ORDER BY c.checked_out_at DESC;
+            "#,
+            user_id as _
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map(|rows| rows.into_iter().map(Checkout::from).collect())
+        .map_err(AppError::SpecificOperationError)
     }
     async fn find_history_by_book_id(&self, book_id: BookId) -> AppResult<Vec<Checkout>> {
-        todo!()
+        let checkout = self.find_unreturned_by_book_id(book_id).await?;
+
+        let mut checkout_histories = sqlx::query_as!(
+            ReturnedCheckoutRow,
+            r#"
+                SELECT
+                    c.checkout_id,
+                    c.book_id,
+                    c.user_id,
+                    c.checked_out_at,
+                    c.returned_at,
+                    b.title,
+                    b.author,
+                    b.isbn
+                FROM returned_checkouts AS c
+                INNER JOIN books AS b USING(book_id)
+                WHERE c.book_id = $1
+                ORDER BY c.checked_out_at DESC;
+            "#,
+            book_id as _
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map_err(AppError::SpecificOperationError)?
+        .into_iter()
+        .map(Checkout::from)
+        .collect::<Vec<_>>();
+
+        if let Some(checkout) = checkout {
+            checkout_histories.insert(0, checkout);
+        }
+
+        Ok(checkout_histories)
     }
 }
 
@@ -187,5 +262,30 @@ impl CheckoutRepositoryImpl {
             .await
             .map_err(AppError::SpecificOperationError)?;
         Ok(())
+    }
+
+    async fn find_unreturned_by_book_id(&self, book_id: BookId) -> AppResult<Option<Checkout>> {
+        let res = sqlx::query_as!(
+            CheckoutRow,
+            r#"
+                SELECT
+                    c.checkout_id,
+                    c.book_id,
+                    c.user_id,
+                    c.checked_out_at,
+                    b.title,
+                    b.author,
+                    b.isbn
+                FROM checkouts AS c
+                INNER JOIN books AS b USING(book_id)
+                WHERE c.book_id = $1                
+            "#,
+            book_id as _
+        )
+        .fetch_optional(self.db.inner_ref())
+        .await
+        .map_err(AppError::SpecificOperationError)?
+        .map(Checkout::from);
+        Ok(res)
     }
 }
