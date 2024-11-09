@@ -4,10 +4,10 @@ use garde::Validate;
 use kernel::model::{
     book::{
         event::{CreateBook, UpdateBook},
-        list::PaginatedList,
         Book, BookCheckout, BookListOptions,
     },
     id::{BookId, CheckoutId, UserId},
+    list::PaginatedList,
     user::BookOwner,
 };
 use serde::{Deserialize, Serialize};

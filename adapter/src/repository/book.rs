@@ -10,10 +10,10 @@ use kernel::{
     model::{
         book::{
             event::{CreateBook, DeleteBook, UpdateBook},
-            list::PaginatedList,
             Book, BookCheckout, BookListOptions,
         },
         id::{BookId, UserId},
+        list::PaginatedList,
     },
     repository::book::BookRepository,
 };
