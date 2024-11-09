@@ -1,11 +1,11 @@
 use axum::Router;
-use registry::AppRegistryImpl;
+use registry::AppRegistry;
 
 use super::{
     book::build_book_routers, health::build_health_check_routers, user::build_user_router,
 };
 
-pub fn routes() -> Router<AppRegistryImpl> {
+pub fn routes() -> Router<AppRegistry> {
     let router = Router::new()
         .merge(build_health_check_routers())
         .merge(build_book_routers())

@@ -78,3 +78,5 @@ impl AppRegistryExt for AppRegistryImpl {
         self.checkout_repository.clone()
     }
 }
+
+pub type AppRegistry = Arc<dyn AppRegistryExt + Send + Sync + 'static>;

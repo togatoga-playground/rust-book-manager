@@ -2,7 +2,7 @@ use axum::{
     routing::{delete, put},
     Router,
 };
-use registry::AppRegistryImpl;
+use registry::AppRegistry;
 
 use crate::handler::user::{
     change_password, change_role, delete_user, get_checkouts, get_current_user, list_users,
@@ -10,7 +10,7 @@ use crate::handler::user::{
 };
 use axum::routing::get;
 
-pub fn build_user_router() -> Router<AppRegistryImpl> {
+pub fn build_user_router() -> Router<AppRegistry> {
     Router::new()
         .route("/users/me", get(get_current_user))
         .route("/users/me/password", put(change_password))

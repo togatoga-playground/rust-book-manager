@@ -52,7 +52,7 @@ async fn bootstrap() -> Result<()> {
     let app_config = AppConfig::new()?;
     let pool = connect_database_with(&app_config.database);
     let kv = Arc::new(RedisClient::new(&app_config.redis)?);
-    let registry = AppRegistryImpl::new(pool, kv, app_config);
+    let registry = Arc::new(AppRegistryImpl::new(pool, kv, app_config));
     let app = Router::new()
         .merge(v1::routes())
         .merge(auth::routes())
