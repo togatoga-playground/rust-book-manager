@@ -15,7 +15,7 @@ impl RedisClient {
     }
     pub async fn set_ex<T: RedisKey>(&self, key: &T, value: &T::Value, ttl: u64) -> AppResult<()> {
         let mut conn = self.client.get_multiplexed_async_connection().await?;
-        conn.set_ex(key.inner(), value.inner(), ttl).await?;
+        let _: () = conn.set_ex(key.inner(), value.inner(), ttl).await?;
         Ok(())
     }
     pub async fn get<T: RedisKey>(&self, key: &T) -> AppResult<Option<T::Value>> {
@@ -26,7 +26,7 @@ impl RedisClient {
 
     pub async fn delete<T: RedisKey>(&self, key: &T) -> AppResult<()> {
         let mut conn = self.client.get_multiplexed_async_connection().await?;
-        conn.del(key.inner()).await?;
+        let _: () = conn.del(key.inner()).await?;
         Ok(())
     }
 
