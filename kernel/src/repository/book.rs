@@ -4,10 +4,10 @@ use shared::error::AppResult;
 use crate::model::{
     book::{
         event::{CreateBook, DeleteBook, UpdateBook},
-        list::PaginatedList,
         Book, BookListOptions,
     },
     id::{BookId, UserId},
+    list::PaginatedList,
 };
 
 #[mockall::automock]

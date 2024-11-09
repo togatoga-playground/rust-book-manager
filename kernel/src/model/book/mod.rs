@@ -6,7 +6,6 @@ use super::{
 };
 
 pub mod event;
-pub mod list;
 
 #[derive(Debug)]
 pub struct Book {

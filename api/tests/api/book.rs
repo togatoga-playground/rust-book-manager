@@ -1,13 +1,23 @@
+use std::sync::Arc;
+
+use axum::{body::Body, http::Request};
+use rstest::rstest;
+use tower::ServiceExt;
+
+use crate::{
+    deserialize_json,
+    helper::{fixture, make_router, v1, TestRequestExt},
+};
+use api::model::book::PaginatedBookResponse;
 use kernel::{
     model::{
-        book::list::PaginatedList,
+        book::Book,
         id::{BookId, UserId},
+        list::PaginatedList,
         user::BookOwner,
     },
     repository::book::MockBookRepository,
 };
-use rstest::rstest;
-use std::sync::Arc;
 
 #[rstest]
 #[case("/books", 20, 0)]
@@ -21,8 +31,6 @@ async fn show_book_list_with_query_200(
     #[case] expected_limit: i64,
     #[case] expected_offset: i64,
 ) -> anyhow::Result<()> {
-    use kernel::model::book::Book;
-
     let book_id = BookId::new();
     fixture.expect_book_repository().returning(move || {
         let mut mock = MockBookRepository::new();
@@ -48,5 +56,15 @@ async fn show_book_list_with_query_200(
         });
         Arc::new(mock)
     });
+    let app: axum::Router = make_router(fixture);
+
+    let req = Request::get(&v1(path)).bearer().body(Body::empty())?;
+    let resp = app.oneshot(req).await?;
+    assert_eq!(resp.status(), axum::http::StatusCode::OK);
+
+    let result = deserialize_json!(resp, PaginatedBookResponse);
+    assert_eq!(result.limit, expected_limit);
+    assert_eq!(result.offset, expected_offset);
+
     Ok(())
 }

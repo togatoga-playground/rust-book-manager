@@ -158,7 +158,7 @@ impl From<kernel::model::user::BookOwner> for BookOwner {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CheckoutUser {
     pub id: UserId,
