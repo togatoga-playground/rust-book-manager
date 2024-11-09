@@ -54,7 +54,7 @@ impl AppRegistryImpl {
             user_repository,
             checkout_repository,
         }
-    }    
+    }
 }
 
 impl AppRegistryExt for AppRegistryImpl {

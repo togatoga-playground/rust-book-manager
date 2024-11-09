@@ -5,8 +5,8 @@ use axum::{
 };
 use garde::Validate;
 use kernel::model::{id::UserId, user::event::DeleteUser};
-use registry::AppRegistryExt;
 use registry::AppRegistry;
+use registry::AppRegistryExt;
 use shared::error::{AppError, AppResult};
 
 use crate::{
