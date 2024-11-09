@@ -5,7 +5,7 @@ use axum::{
 };
 use garde::Validate;
 use kernel::model::{book::event::DeleteBook, id::BookId};
-use registry::AppRegistry;
+use registry::AppRegistryImpl;
 use shared::error::{AppError, AppResult};
 use uuid::Uuid;
 
@@ -19,7 +19,7 @@ use crate::{
 
 pub async fn register_book(
     user: AuthorizedUser,
-    State(registry): State<AppRegistry>,
+    State(registry): State<AppRegistryImpl>,
     Json(req): Json<CreateBookRequest>,
 ) -> AppResult<StatusCode> {
     req.validate()?;
@@ -33,7 +33,7 @@ pub async fn register_book(
 pub async fn show_book_list(
     _user: AuthorizedUser,
     Query(query): Query<BookListQuery>,
-    State(registry): State<AppRegistry>,
+    State(registry): State<AppRegistryImpl>,
 ) -> AppResult<Json<PaginatedBookResponse>> {
     query.validate()?;
     registry
@@ -47,7 +47,7 @@ pub async fn show_book_list(
 pub async fn show_book(
     _user: AuthorizedUser,
     Path(book_id): Path<Uuid>,
-    State(registry): State<AppRegistry>,
+    State(registry): State<AppRegistryImpl>,
 ) -> AppResult<Json<BookResponse>> {
     registry
         .book_repository()
@@ -62,7 +62,7 @@ pub async fn show_book(
 pub async fn update_book(
     user: AuthorizedUser,
     Path(book_id): Path<BookId>,
-    State(registry): State<AppRegistry>,
+    State(registry): State<AppRegistryImpl>,
     Json(req): Json<UpdateBookRequest>,
 ) -> AppResult<StatusCode> {
     req.validate()?;
@@ -78,7 +78,7 @@ pub async fn update_book(
 pub async fn delete_book(
     user: AuthorizedUser,
     Path(book_id): Path<BookId>,
-    State(registry): State<AppRegistry>,
+    State(registry): State<AppRegistryImpl>,
 ) -> AppResult<StatusCode> {
     let delete_book = DeleteBook {
         book_id,

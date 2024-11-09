@@ -9,3 +9,4 @@ publish.workspace = true
 adapter.workspace = true
 kernel.workspace = true
 shared.workspace = true
+mockcall.workspace = true

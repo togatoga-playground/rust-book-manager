@@ -1,6 +1,6 @@
 use axum::{extract::State, http::StatusCode, Json};
 use kernel::model::auth::event::CreateToken;
-use registry::AppRegistry;
+use registry::AppRegistryImpl;
 use shared::error::AppResult;
 
 use crate::{
@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub async fn login(
-    State(registry): State<AppRegistry>,
+    State(registry): State<AppRegistryImpl>,
     Json(req): Json<LoginRequest>,
 ) -> AppResult<Json<AccessTokenResponse>> {
     let user_id = registry
@@ -28,7 +28,7 @@ pub async fn login(
 
 pub async fn logout(
     user: AuthorizedUser,
-    State(registry): State<AppRegistry>,
+    State(registry): State<AppRegistryImpl>,
 ) -> AppResult<StatusCode> {
     registry
         .auth_repository()

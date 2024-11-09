@@ -47,6 +47,7 @@ garde = { version = "0.20.0", features = ["derive", "email"] }
 redis = { version = "0.27.5", features = ["tokio-rustls-comp"] }
 bcrypt = "0.15.1"
 axum-extra = { version = "0.9.4", features = ["typed-header"] }
+mockall = "0.13.0"
 
 [dependencies]
 # members
@@ -63,7 +64,7 @@ sqlx.workspace = true
 tracing.workspace = true
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
 tower-http = { version = "0.6.1", features = ["cors", "trace"] }
-mockall = "0.13.0"
+
 
 
 
