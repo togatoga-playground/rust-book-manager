@@ -166,7 +166,7 @@ impl CheckoutRepository for CheckoutRepositoryImpl {
 
         tx.commit().await.map_err(AppError::TransactionError)?;
 
-        todo!()
+        Ok(())
     }
 
     async fn find_returned_all(&self) -> AppResult<Vec<Checkout>> {
